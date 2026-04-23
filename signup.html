@@ -146,7 +146,7 @@
 </head>
 <body>
   <header>
-    <div class="logo1"><img src="./img/icon(light).png" alt="" class="CVflow_logo"></div>
+    <div class="logo1">cvFlow</div>
     <div class="header-right">Already have an account? <a href="login.html">Sign In</a></div>
   </header>
 
@@ -157,22 +157,17 @@
 
       <form action="signup.php" method="post">
         <div class="field">
-          <label>Full Name</label>
-          <input type="text" name="full_name" placeholder="Alex Rivera" required />
+          <label>Nom</label>
+          <input type="text" name="nom" placeholder="Alex Rivera" required />
         </div>
         <div class="field">
-          <label>Work Email</label>
+          <label>Email</label>
           <input type="email" name="email" placeholder="alex@company.com" required />
         </div>
         <div class="field">
-          <label>Password</label>
-          <input type="password" name="password" placeholder="••••••••" required />
+          <label>Mot de passe</label>
+          <input type="password" name="mot_de_passe" placeholder="••••••••" required />
         </div>
-
-        <label class="terms">
-          <input type="checkbox" required />
-          <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
-        </label>
 
         <button class="submit" type="submit">Create Account</button>
       </form>

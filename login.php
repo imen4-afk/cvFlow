@@ -1,9 +1,11 @@
 <?php
-// login.php - Simple login processing using GET
-$username = $_GET['username'] ?? '';
-$password = $_GET['password'] ?? '';
+// login.php - Login processing using the utilisateurs table
+session_start();
 
-if (empty($username) || empty($password)) {
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
+
+if (empty($email) || empty($password)) {
     header('Location: login.html');
     exit();
 }
@@ -14,108 +16,35 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch all users into an array and search for a matching record
-$result = $conn->query("SELECT username, password FROM users");
-$users = [];
+$stmt = $conn->prepare("SELECT id_user, nom, mot_de_passe FROM utilisateurs WHERE email = ?");
+if (!$stmt) {
+    die("Prepare failed: " . $conn->error);
+}
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$id_user = null;
+$nom = null;
+$hash_password = '';
+$stmt->bind_result($id_user, $nom, $hash_password);
 
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
+$authenticated = false;
+if ($stmt->fetch() && $hash_password !== '') {
+    if (password_verify($password, $hash_password)) {
+        $authenticated = true;
     }
-    $result->free();
 }
 
-$found = false;
-foreach ($users as $user) {
-    if ($user['username'] === $username && $user['password'] === $password) {
-        $found = true;
-        break;
-    }
-}
+$stmt->close();
+$conn->close();
 
-if ($found) {
-    // Login successful
-    $conn->close();
-    header('Location: dashboard.html');
-    exit();
-} else {
-    // Login failed - ask if user wants to sign up and show signup form
-    $conn->close();
-    ?>
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Sign Up</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-                background-color: #f0f0f0;
-            }
-            fieldset {
-                border: 1px solid #ccc;
-                padding: 20px;
-                border-radius: 5px;
-                background-color: white;
-            }
-            legend {
-                font-weight: bold;
-            }
-            .message {
-                margin-bottom: 15px;
-                color: #d9534f;
-                text-align: center;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-            }
-            input[type="text"], input[type="password"] {
-                width: 100%;
-                padding: 8px;
-                margin-bottom: 10px;
-                border: 1px solid #ccc;
-                border-radius: 3px;
-            }
-            button {
-                padding: 10px 20px;
-                background-color: #5cb85c;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                cursor: pointer;
-                width: 100%;
-            }
-            button:hover {
-                background-color: #4cae4c;
-            }
-        </style>
-    </head>
-    <body>
-        <fieldset>
-            <legend>Sign Up</legend>
-            <div class="message">
-                User not found in the database. Would you like to sign up?
-            </div>
-            <form action="signup.php" method="post">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-
-                <button type="submit">Sign Up</button>
-            </form>
-        </fieldset>
-    </body>
-    </html>
-    <?php
+if ($authenticated) {
+    $_SESSION['user_id'] = $id_user;
+    $_SESSION['user_name'] = $nom;
+    $_SESSION['user_email'] = $email;
+    header('Location: dashboard.php');
     exit();
 }
+
+header('Location: signup.html');
+exit();
 ?>

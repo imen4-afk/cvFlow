@@ -1,47 +1,58 @@
 <?php
-// signup.php - Simple signup processing
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $full_name = $_POST['full_name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
+// signup.php - Signup processing using the utilisateurs table
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $nom = trim($_POST['nom'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $mot_de_passe = $_POST['mot_de_passe'] ?? '';
 
-    if (empty($full_name) || empty($email) || empty($password)) {
+    if (empty($nom) || empty($email) || empty($mot_de_passe)) {
         echo "All fields are required.";
         exit();
     }
 
-    // Database connection
+    $hash_password = password_hash($mot_de_passe, PASSWORD_DEFAULT);
+
     $conn = new mysqli('localhost', 'root', '', 'cv_editor');
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    // Check if email already exists
-    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id_user FROM utilisateurs WHERE email = ?");
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
     $stmt->bind_param("s", $email);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $stmt->store_result();
 
-    if ($result->num_rows > 0) {
-        echo "Email already exists.";
+    if ($stmt->num_rows > 0) {
         $stmt->close();
         $conn->close();
+        echo "Email already exists. <a href='login.html'>Login</a> instead.";
         exit();
     }
 
-    // Insert new user
-    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)");
-    $stmt->bind_param("sss", $full_name, $email, $password);
+    $stmt->close();
+
+    $stmt = $conn->prepare("INSERT INTO utilisateurs (nom, email, mot_de_passe) VALUES (?, ?, ?)");
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
+    $stmt->bind_param("sss", $nom, $email, $hash_password);
+
     if ($stmt->execute()) {
-        echo "Signup successful! <a href='login.html'>Login now</a>";
-    } else {
-        echo "Signup failed.";
+        $stmt->close();
+        $conn->close();
+        header('Location: login.html?signup=success');
+        exit();
     }
 
     $stmt->close();
     $conn->close();
-} else {
-    header('Location: signup.html');
+    echo "Signup failed. Please try again.";
     exit();
 }
+
+header('Location: signup.html');
+exit();
 ?>

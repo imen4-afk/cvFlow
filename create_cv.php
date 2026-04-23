@@ -1,9 +1,46 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.html');
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $titre = trim($_POST['titre'] ?? '');
+    $presentation = trim($_POST['presentation'] ?? '');
+
+    if (empty($titre)) {
+        $error = "Title is required.";
+    } else {
+        $conn = new mysqli('localhost', 'root', '', 'cv_editor');
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
+
+        $stmt = $conn->prepare("INSERT INTO cv (id_user, titre, presentation) VALUES (?, ?, ?)");
+        $stmt->bind_param("iss", $user_id, $titre, $presentation);
+        if ($stmt->execute()) {
+            $cv_id = $stmt->insert_id;
+            $stmt->close();
+            $conn->close();
+            header("Location: edit_cv.php?id=$cv_id");
+            exit();
+        } else {
+            $error = "Failed to create CV.";
+        }
+        $stmt->close();
+        $conn->close();
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Login</title>
+<title>Create CV - CVFlow</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,11 +61,7 @@
     align-items: center;
     padding: 32px 64px;
   }
-.CVflow_logo{
-  height: 216px;
-  width: 216px;
-}
-.logo1 {
+  .logo1 {
     height: 74px;
     width: 65px;
     margin-left: -48px;
@@ -36,9 +69,7 @@
     padding-top: 9px;
     margin-bottom: 24px;
     margin-right: 8px;
-    color:#111; 
-}
-      
+  }
   .logo { font-size: 22px; font-weight: 800; }
   .header-right { font-size: 15px; color: #555; }
   .header-right a {
@@ -67,7 +98,7 @@
     padding: 48px;
     box-shadow: 0 10px 40px rgba(79, 45, 209, 0.08);
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
   }
   .card h2 {
     font-size: 32px;
@@ -89,7 +120,7 @@
     color: #4f2dd1;
     margin-bottom: 8px;
   }
-  .field input {
+  .field input, .field textarea {
     width: 100%;
     background: #ebe3f7;
     border: none;
@@ -97,8 +128,19 @@
     padding: 14px 20px;
     font-size: 15px;
     outline: none;
+    resize: vertical;
   }
-  .field input::placeholder { color: #aaa; }
+  .field textarea {
+    border-radius: 18px;
+    min-height: 100px;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: #aaa; }
+
+  .error {
+    color: #d9534f;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
 
   .submit {
     width: 100%;
@@ -138,25 +180,31 @@
 <body>
   <header>
     <div class="logo1"><h3>CVFlow</h3></div>
-    <div class="header-right">Don't have an account? <a href="signup.php">Sign Up</a></div>
+    <div class="header-right">
+      <a href="dashboard.php">Back to Dashboard</a>
+    </div>
   </header>
 
   <main class="container">
     <section class="card">
-      <h2>Login</h2>
-      <p class="subtitle">Enter your credentials to access your account.</p>
+      <h2>Create New CV</h2>
+      <p class="subtitle">Start building your professional CV.</p>
 
-      <form action="login.php" method="post">
+      <?php if (isset($error)): ?>
+        <div class="error"><?php echo htmlspecialchars($error); ?></div>
+      <?php endif; ?>
+
+      <form action="create_cv.php" method="post">
         <div class="field">
-          <label>Email</label>
-          <input type="email" name="email" placeholder="Enter your email" required />
+          <label>CV Title</label>
+          <input type="text" name="titre" placeholder="e.g., Software Developer CV" required />
         </div>
         <div class="field">
-          <label>Password</label>
-          <input type="password" name="password" placeholder="Enter password" required />
+          <label>Personal Presentation</label>
+          <textarea name="presentation" placeholder="Write a brief introduction about yourself..."></textarea>
         </div>
 
-        <button class="submit" type="submit">Login</button>
+        <button class="submit" type="submit">Create CV</button>
       </form>
     </section>
   </main>
@@ -164,7 +212,7 @@
   <footer>
     <div class="logo">CVFlow</div>
     <div class="links">
-      <a href="#">Imen Othmen </a>
+      <a href="#">Imen Othmen</a>
       <a href="#">Jasser Nsiri</a>
       <a href="#">Hadil Rjeb</a>
       <a href="#">Rahma Chouaieb</a>
