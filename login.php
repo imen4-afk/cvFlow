@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config.php';
 session_start();
 
 $email    = trim($_POST['email']    ?? '');
@@ -9,7 +10,7 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-$conn = new mysqli('localhost', 'root', '', 'cv_editor');
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
@@ -48,7 +49,7 @@ $conn->close();
 // Send OTP email
 $subject = 'CVFlow – Your verification code';
 $body    = "Hello $nom,\n\nYour 2-factor verification code is:\n\n  $otp\n\nIt expires in 10 minutes. Do not share it with anyone.\n\n– CVFlow";
-$headers = "From: noreply@cvflow.local\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
+$headers = "From: " . MAIL_FROM . "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
 mail($email, $subject, $body, $headers);
 
 // Store pending user ID in session (NOT the full login yet)

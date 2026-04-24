@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/config.php';
 session_start();
 
 if (!isset($_SESSION['2fa_pending_id'])) {
@@ -12,7 +13,7 @@ $user_id = (int) $_SESSION['2fa_pending_id'];
 
 // ── Handle resend ──────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend'])) {
-    $conn = new mysqli('localhost', 'root', '', 'cv_editor');
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
     $otp     = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -27,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend'])) {
     $email = $_SESSION['2fa_pending_email'];
     $nom   = $_SESSION['2fa_pending_name'];
     $body  = "Hello $nom,\n\nYour new verification code is:\n\n  $otp\n\nIt expires in 10 minutes.\n\n– CVFlow";
-    $hdr   = "From: noreply@cvflow.local\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
+    $hdr   = "From: " . MAIL_FROM . "\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
     mail($email, 'CVFlow – New verification code', $body, $hdr);
 
     $success = 'A new code has been sent to your email.';
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     if (empty($otp_input)) {
         $error = 'Please enter the 6-digit code.';
     } else {
-        $conn = new mysqli('localhost', 'root', '', 'cv_editor');
+        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         if ($conn->connect_error) { die("Connection failed: " . $conn->connect_error); }
 
         $stmt = $conn->prepare(
