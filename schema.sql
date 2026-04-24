@@ -5,9 +5,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     id_user      INT          AUTO_INCREMENT PRIMARY KEY,
     nom          VARCHAR(255) NOT NULL,
     email        VARCHAR(255) NOT NULL UNIQUE,
-    mot_de_passe VARCHAR(255) NOT NULL,
-    otp_code     VARCHAR(6)   NULL DEFAULT NULL,
-    otp_expires  DATETIME     NULL DEFAULT NULL
+    mot_de_passe VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS cv (
