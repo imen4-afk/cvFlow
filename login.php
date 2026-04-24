@@ -1,8 +1,7 @@
 <?php
-// login.php - Login processing using the utilisateurs table
 session_start();
 
-$email = trim($_POST['email'] ?? '');
+$email    = trim($_POST['email']    ?? '');
 $password = $_POST['password'] ?? '';
 
 if (empty($email) || empty($password)) {
@@ -10,21 +9,16 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
-// Database connection
 $conn = new mysqli('localhost', 'root', '', 'cv_editor');
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 $stmt = $conn->prepare("SELECT id_user, nom, mot_de_passe FROM utilisateurs WHERE email = ?");
-if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-}
+if (!$stmt) { die("Prepare failed: " . $conn->error); }
 $stmt->bind_param("s", $email);
 $stmt->execute();
-$id_user = null;
-$nom = null;
-$hash_password = '';
+$id_user = null; $nom = null; $hash_password = '';
 $stmt->bind_result($id_user, $nom, $hash_password);
 
 $authenticated = false;
@@ -33,18 +27,35 @@ if ($stmt->fetch() && $hash_password !== '') {
         $authenticated = true;
     }
 }
-
 $stmt->close();
-$conn->close();
 
-if ($authenticated) {
-    $_SESSION['user_id'] = $id_user;
-    $_SESSION['user_name'] = $nom;
-    $_SESSION['user_email'] = $email;
-    header('Location: dashboard.php');
+if (!$authenticated) {
+    $conn->close();
+    header('Location: login.html?error=invalid');
     exit();
 }
 
-header('Location: signup.html');
+// Generate 6-digit OTP and store it with a 10-minute expiry
+$otp     = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+$expires = date('Y-m-d H:i:s', time() + 600);
+
+$stmt = $conn->prepare("UPDATE utilisateurs SET otp_code = ?, otp_expires = ? WHERE id_user = ?");
+$stmt->bind_param("ssi", $otp, $expires, $id_user);
+$stmt->execute();
+$stmt->close();
+$conn->close();
+
+// Send OTP email
+$subject = 'CVFlow – Your verification code';
+$body    = "Hello $nom,\n\nYour 2-factor verification code is:\n\n  $otp\n\nIt expires in 10 minutes. Do not share it with anyone.\n\n– CVFlow";
+$headers = "From: noreply@cvflow.local\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8";
+mail($email, $subject, $body, $headers);
+
+// Store pending user ID in session (NOT the full login yet)
+$_SESSION['2fa_pending_id']    = $id_user;
+$_SESSION['2fa_pending_email'] = $email;
+$_SESSION['2fa_pending_name']  = $nom;
+
+header('Location: verify_2fa.php');
 exit();
 ?>

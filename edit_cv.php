@@ -99,17 +99,64 @@ $conn->close();
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Edit CV - CVFlow</title>
+<script>
+  (function(){ document.documentElement.setAttribute('data-theme', localStorage.getItem('cvflow-theme')||'light'); })();
+</script>
+<link rel="stylesheet" href="particles.css" />
 <style>
+  :root {
+    --bg: linear-gradient(135deg, #dfe9f3, #ffffff);
+    --bg-mid: linear-gradient(135deg, #fceabb, #f8b500);
+    --bg-end: linear-gradient(135deg, #c9e4f7, #e6f0ff);
+    --color: #222;
+    --muted: #666;
+    --subtle: #555;
+    --card: #fff;
+    --input-bg: #f5f7ff;
+    --item-bg: #f9f7fc;
+    --accent: #4f6ef2;
+    --accent-h: #3a56c5;
+    --accent-grad: linear-gradient(90deg, #4f6ef2, #7fa6f9);
+    --border: #e5e5e5;
+    --shadow: rgba(0,0,0,0.1);
+    --hdr: #444;
+    --btn-sec: #ebe3f7;
+    --btn-sec-h: #d4c9e7;
+    --btn-sec-color: #333;
+  }
+  [data-theme="dark"] {
+    --bg: linear-gradient(135deg, #0f1117, #1a1d2e);
+    --bg-mid: linear-gradient(135deg, #1a1a3e, #2a1545);
+    --bg-end: linear-gradient(135deg, #0d1b2a, #1c2540);
+    --color: #e8eaf0;
+    --muted: #9aa3b5;
+    --subtle: #9aa3b5;
+    --card: #1e2235;
+    --input-bg: #252a3d;
+    --item-bg: #252a3d;
+    --accent: #6b8af5;
+    --accent-h: #8fa5ff;
+    --accent-grad: linear-gradient(90deg, #6b8af5, #9ab0fa);
+    --border: #2d3347;
+    --shadow: rgba(0,0,0,0.35);
+    --hdr: #c8cad4;
+    --btn-sec: #2d3347;
+    --btn-sec-h: #363d54;
+    --btn-sec-color: #e8eaf0;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f3eefb;
-    color: #111;
+    background: var(--bg);
+    color: var(--color);
     line-height: 1.5;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
+    animation: bgShift 25s ease-in-out infinite alternate;
   }
 
   /* Header */
@@ -118,24 +165,28 @@ $conn->close();
     justify-content: space-between;
     align-items: center;
     padding: 32px 64px;
+    animation: fadeDown 1s ease forwards;
+    color: var(--hdr);
   }
-  .logo1 {
-    height: 74px;
-    width: 65px;
-    margin-left: -48px;
-    margin-top: -138px;
-    padding-top: 9px;
-    margin-bottom: 24px;
-    margin-right: 8px;
+  .logo1 h3 {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 1px;
+    transition: transform 0.3s ease;
   }
+  .logo1 h3:hover { transform: scale(1.05); }
+
   .logo { font-size: 22px; font-weight: 800; }
-  .header-right { font-size: 15px; color: #555; }
+  .header-right { font-size: 15px; color: var(--subtle); display: flex; align-items: center; }
   .header-right a {
-    color: #4f2dd1;
+    color: var(--accent);
     font-weight: 600;
     text-decoration: none;
     margin-left: 8px;
+    transition: color 0.3s ease;
   }
+  .header-right a:hover { color: var(--accent-h); }
 
   /* Layout */
   .container {
@@ -149,29 +200,33 @@ $conn->close();
   .cv-header {
     text-align: center;
     margin-bottom: 40px;
+    animation: fadeIn 1.5s ease;
   }
   .cv-header h1 {
     font-size: 32px;
     font-weight: 800;
     margin-bottom: 8px;
+    color: var(--accent);
+    animation: slideIn 1s ease;
   }
-  .cv-header p {
-    color: #666;
-    font-size: 15px;
-  }
+  .cv-header p { color: var(--muted); font-size: 15px; }
 
   .section {
-    background: #fff;
-    border-radius: 24px;
-    padding: 32px;
+    background: var(--card);
+    border-radius: 20px;
+    padding: 48px;
     margin-bottom: 32px;
-    box-shadow: 0 10px 40px rgba(79, 45, 209, 0.08);
+    box-shadow: 0 8px 30px var(--shadow);
+    transform: translateY(40px);
+    opacity: 0;
+    animation: fadeUp 1s ease forwards;
   }
   .section h2 {
     font-size: 24px;
     font-weight: 800;
     margin-bottom: 24px;
-    color: #4f2dd1;
+    color: var(--accent);
+    animation: slideIn 1s ease;
   }
 
   .field { margin-bottom: 20px; }
@@ -180,35 +235,30 @@ $conn->close();
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #4f2dd1;
+    color: var(--accent);
     margin-bottom: 8px;
   }
   .field input, .field textarea {
     width: 100%;
-    background: #ebe3f7;
+    background: var(--input-bg);
     border: none;
     border-radius: 999px;
     padding: 14px 20px;
     font-size: 15px;
+    color: var(--color);
     outline: none;
     resize: vertical;
+    transition: box-shadow 0.3s ease;
   }
-  .field textarea {
-    border-radius: 18px;
-    min-height: 100px;
-  }
+  .field textarea { border-radius: 18px; min-height: 100px; }
+  .field input:focus, .field textarea:focus { box-shadow: 0 0 0 3px rgba(107,138,245,0.35); }
   .field input::placeholder, .field textarea::placeholder { color: #aaa; }
 
-  .form-row {
-    display: flex;
-    gap: 20px;
-  }
-  .form-row .field {
-    flex: 1;
-  }
+  .form-row { display: flex; gap: 20px; }
+  .form-row .field { flex: 1; }
 
   .btn {
-    background: #4f2dd1;
+    background: var(--accent-grad);
     color: #fff;
     border: none;
     border-radius: 999px;
@@ -217,57 +267,136 @@ $conn->close();
     font-weight: 700;
     cursor: pointer;
     margin-right: 12px;
+    transition: transform 0.2s ease, background 0.3s ease;
+    animation: pulse 3s infinite;
   }
-  .btn:hover { background: #3f23a8; }
+  .btn:hover { transform: scale(1.05); background: var(--accent-h); }
   .btn-secondary {
-    background: #ebe3f7;
-    color: #333;
+    background: var(--btn-sec);
+    color: var(--btn-sec-color);
+    border: none;
+    border-radius: 999px;
+    padding: 14px 28px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.3s ease;
   }
-  .btn-secondary:hover { background: #d4c9e7; }
+  .btn-secondary:hover { background: var(--btn-sec-h); }
 
   .list-item {
-    background: #f9f7fc;
+    background: var(--item-bg);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 16px;
+    animation: fadeIn 1.2s ease;
   }
   .list-item h3 {
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 8px;
+    color: var(--accent);
   }
-  .list-item p {
-    color: #666;
-    margin-bottom: 4px;
+  .list-item p { color: var(--muted); margin-bottom: 4px; }
+
+  /* Theme switch */
+  .theme-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    margin-left: 16px;
+    font-size: 15px;
+    user-select: none;
   }
+  .theme-switch input { display: none; }
+  .track {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    transition: transform 0.3s;
+  }
+  .theme-switch input:checked + .track { background: var(--accent); }
+  .theme-switch input:checked + .track .thumb { transform: translateX(20px); }
 
   /* Footer */
   footer {
-    border-top: 1px solid #e5dcf3;
+    border-top: 1px solid var(--border);
     padding: 24px 64px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 14px;
-    color: #666;
+    color: var(--muted);
     flex-wrap: wrap;
     gap: 16px;
+    animation: fadeUp 1.2s ease forwards;
   }
   footer .links { display: flex; gap: 32px; }
-  footer .links a { color: #555; text-decoration: none; }
+  footer .links a { color: var(--accent); text-decoration: none; transition: color 0.3s ease; }
+  footer .links a:hover { color: var(--accent-h); }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  @keyframes bgShift {
+    0%   { background: var(--bg); }
+    50%  { background: var(--bg-mid); }
+    100% { background: var(--bg-end); }
+  }
 
   @media (max-width: 900px) {
     .container { padding: 24px; }
     header, footer { padding: 24px; }
+    .section { padding: 32px 24px; }
     .form-row { flex-direction: column; }
   }
 </style>
+
 </head>
 <body>
+  <div id="bgParticles" aria-hidden="true"></div>
   <header>
     <div class="logo1"><h3>CVFlow</h3></div>
     <div class="header-right">
       <a href="dashboard.php">Back to Dashboard</a>
+      <label class="theme-switch" title="Toggle dark mode">
+        ☀️<input type="checkbox" id="themeCheckbox" /><span class="track"><span class="thumb"></span></span>🌙
+      </label>
     </div>
   </header>
 
@@ -377,5 +506,21 @@ $conn->close();
     </div>
     <div>@projet web GLSI2</div>
   </footer>
+
+  <script src="particles.js"></script>
+  <script>
+    (function() {
+      const root = document.documentElement;
+      const cb   = document.getElementById('themeCheckbox');
+      const saved = localStorage.getItem('cvflow-theme') || 'light';
+      root.setAttribute('data-theme', saved);
+      cb.checked = (saved === 'dark');
+      cb.addEventListener('change', function() {
+        const next = this.checked ? 'dark' : 'light';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('cvflow-theme', next);
+      });
+    })();
+  </script>
 </body>
 </html>

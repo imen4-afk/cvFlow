@@ -1,0 +1,54 @@
+#bgParticles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Push page chrome above the particle layer */
+header, main, footer {
+  position: relative;
+  z-index: 1;
+}
+
+.bp {
+  position: absolute;
+  bottom: -60px;
+  opacity: 0;
+  will-change: transform, opacity;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Three path variants so particles don't all move identically */
+@keyframes bpFloat1 {
+  0%   { transform: translateY(0)      translateX(0px)   scale(0.6) rotate(0deg);   opacity: 0;    }
+  8%   {                                                                              opacity: 0.55; }
+  30%  { transform: translateY(-30vh)  translateX(28px)  scale(1)   rotate(90deg);               }
+  60%  { transform: translateY(-60vh)  translateX(-20px) scale(0.9) rotate(200deg);              }
+  92%  {                                                                              opacity: 0.55; }
+  100% { transform: translateY(-108vh) translateX(10px)  scale(0.7) rotate(360deg); opacity: 0;    }
+}
+
+@keyframes bpFloat2 {
+  0%   { transform: translateY(0)      translateX(0px)   scale(0.5) rotate(0deg);   opacity: 0;   }
+  8%   {                                                                             opacity: 0.5; }
+  40%  { transform: translateY(-40vh)  translateX(-32px) scale(1.0) rotate(130deg);              }
+  70%  { transform: translateY(-70vh)  translateX(18px)  scale(1.1) rotate(240deg);              }
+  92%  {                                                                             opacity: 0.5; }
+  100% { transform: translateY(-108vh) translateX(-12px) scale(0.6) rotate(360deg); opacity: 0;   }
+}
+
+@keyframes bpFloat3 {
+  0%   { transform: translateY(0)      translateX(0px)  scale(0.7) rotate(0deg);   opacity: 0;   }
+  8%   {                                                                            opacity: 0.6; }
+  50%  { transform: translateY(-50vh)  translateX(35px) scale(1.0) rotate(180deg);              }
+  92%  {                                                                            opacity: 0.6; }
+  100% { transform: translateY(-108vh) translateX(-8px) scale(0.8) rotate(360deg); opacity: 0;   }
+}
+
+/* Slightly dim particles in dark mode so they don't overpower the dark bg */
+[data-theme="dark"] #bgParticles {
+  filter: brightness(0.78) saturate(0.88);
+}
