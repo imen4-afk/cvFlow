@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $titre_poste = trim($_POST['titre_poste'] ?? '');
         $entreprise = trim($_POST['entreprise'] ?? '');
         $date_debut = $_POST['date_debut'] ?? '';
-        $date_fin = $_POST['date_fin'] ?? '';
+        $date_fin   = !empty($_POST['date_fin']) ? $_POST['date_fin'] : null;
         $description = trim($_POST['description'] ?? '');
         if (!empty($titre_poste) && !empty($entreprise)) {
             $stmt = $conn->prepare("INSERT INTO experiences (id_cv, titre_poste, entreprise, date_debut, date_fin, description) VALUES (?, ?, ?, ?, ?, ?)");
@@ -428,7 +428,7 @@ $conn->close();
         <?php foreach ($experiences as $exp): ?>
           <div class="list-item">
             <h3><?php echo htmlspecialchars($exp['titre_poste']); ?> at <?php echo htmlspecialchars($exp['entreprise']); ?></h3>
-            <p><?php echo htmlspecialchars($exp['date_debut']); ?> - <?php echo htmlspecialchars($exp['date_fin'] ?: 'Present'); ?></p>
+            <p><?php echo htmlspecialchars($exp['date_debut']); ?> - <?php echo ($exp['date_fin'] && $exp['date_fin'] !== '0000-00-00') ? htmlspecialchars($exp['date_fin']) : 'Present'; ?></p>
             <p><?php echo htmlspecialchars($exp['description']); ?></p>
           </div>
         <?php endforeach; ?>

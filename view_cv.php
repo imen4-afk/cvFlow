@@ -434,7 +434,7 @@ $conn->close();
             <div class="cv-item-header">
               <span class="title"><?php echo htmlspecialchars($exp['titre_poste']); ?></span>
               <span class="dates">
-                <?php echo htmlspecialchars($exp['date_debut']); ?> &ndash; <?php echo htmlspecialchars($exp['date_fin'] ?: 'Present'); ?>
+                <?php echo htmlspecialchars($exp['date_debut']); ?> &ndash; <?php echo ($exp['date_fin'] && $exp['date_fin'] !== '0000-00-00') ? htmlspecialchars($exp['date_fin']) : 'Present'; ?>
               </span>
             </div>
             <div class="company"><?php echo htmlspecialchars($exp['entreprise']); ?></div>
